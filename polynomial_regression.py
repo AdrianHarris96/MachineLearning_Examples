@@ -7,18 +7,10 @@ import pandas as pd
 import numpy as np
 import argparse as ap
 
-#Add degree as an argument with a default=2
-'''
 parser = ap.ArgumentParser()
 parser = ap.ArgumentParser(prog = 'Polynomial Regression Example', description='Explore training and plotting a polynomial model')
-parser.add_argument("-y", "--plotxy", help="generate xy plot", action='store_true', required=False)
-parser.add_argument("-z", "--plotxyz", help="generate xyz plot", action='store_true', required=False)
-parser.add_argument("-t", "--training_plot", help="plot predicted vs. actual after training", action='store_true', required=False)
-parser.add_argument("-p", "--plane", help="plot hyperplane", action='store_true', required=False)
+parser.add_argument("-d", "--degree", help="degree of polynomial", type=int, default=2, required=False)
 args = parser.parse_args()
-'''
-
-#Remember: Setting the action to store_true allows the argument to be true in the code as long as it is invoked by the user
 
 from sklearn.datasets import load_boston
 from mpl_toolkits.mplot3d import Axes3D
@@ -49,18 +41,22 @@ y_surf = np.arange(0, 10, 1)
 x_surf, y_surf = np.meshgrid(x_surf, y_surf)
 
 #polynomial function
-degree=2
+degree=args.degree
 polynomial_features= PolynomialFeatures(degree=degree)
 x_poly = polynomial_features.fit_transform(x)
-print(polynomial_features.get_feature_names(['x', 'y']))
 
-quit()
+feature_list = polynomial_features.get_feature_names(['x', 'y'])
+#print(feature_list) #Somehow use feature_list to calculate z for nth degree polynomial instead of hardcode
+
 #apply linear regression 
 model = LinearRegression()
 model.fit(x_poly, y)
 
-#Calculating z from x and y of model
-z = lambda x,y: (model.intercept_ + (model.coef_[1] * x) + (model.coef_[2] * y) + (model.coef_[3] * x**2) + (model.coef_[4] * x*y) + (model.coef_[5] * y**2))
+#Calculating z from x and y of model - ideally, the feature list could be used to build functions nth degree polynomials
+if degree==2:
+	z = lambda x,y: (model.intercept_ + (model.coef_[1] * x) + (model.coef_[2] * y) + (model.coef_[3] * x**2) + (model.coef_[4] * x*y) + (model.coef_[5] * y**2))
+elif degree==3:
+	z = lambda x,y: (model.intercept_ + (model.coef_[1] * x) + (model.coef_[2] * y) + (model.coef_[3] * x**2) + (model.coef_[4] * x*y) + (model.coef_[5] * y**2) + (model.coef_[6] * x**3) + (model.coef_[7] * (x**2) * y) + (model.coef_[8] * (y**2) * x)  + (model.coef_[9] * y**3))
 
 #Plotting plane
 ax.plot_surface(x_surf, y_surf, z(x_surf, y_surf), rstride=1, cstride=1, color='None', alpha=0.4)
